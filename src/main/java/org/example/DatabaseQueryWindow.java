@@ -78,15 +78,17 @@ public class DatabaseQueryWindow {
                 "                AND d.nazwa LIKE '%Produkcja%'\n" +
                 "                AND CAST(l.data_czas AS DATE) = CURRENT_DATE";
 
-        String queryCzasPracy = "SELECT count(distinct o.idx_osoby) as workTime FROM users o\n" +
-                "                JOIN att_log l ON l.idx_osoby = o.idx_osoby\n" +
-                "                JOIN dzialy d ON o.idx_dzialu = d.idx_dzialu\n" +
-                "                WHERE l.in_out IN ('0', '2')\n" +
-                "                 and l.aktywny = 'true'\n" +
-                "                AND (l.idx_device IN ('37', '1', '38', '5', '2', '43', '42', '4', '6', '3'))\n" +
-                "                --and o.idx_osoby='3001'\n" +
-                "                AND d.nazwa LIKE '%Produkcja%'\n" +
-                "                AND CAST(l.data_czas AS DATE) = CURRENT_DATE";
+        String queryCzasPracy = "SELECT\n" +
+                "    COUNT(DISTINCT CASE WHEN l.in_out = '0' THEN o.idx_osoby END) -\n" +
+                "    COUNT(DISTINCT CASE WHEN l.in_out = '1' THEN o.idx_osoby END) AS workTime\n" +
+                "FROM users o\n" +
+                "JOIN att_log l ON l.idx_osoby = o.idx_osoby\n" +
+                "JOIN dzialy d ON o.idx_dzialu = d.idx_dzialu\n" +
+                "WHERE\n" +
+                "    l.aktywny = 'true'\n" +
+                "    AND l.idx_device IN ('37', '1', '38', '5', '2', '43', '42', '4', '6', '3')\n" +
+                "    AND d.nazwa LIKE '%Produkcja%'\n" +
+                "    AND CAST(l.data_czas AS DATE) = CURRENT_DATE;\n";
 
         try (Connection conn = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
              Statement stmt = conn.createStatement()) {
